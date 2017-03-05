@@ -10,7 +10,8 @@ public class Server {
 	public static void main(String[] args) throws IOException {
 		HttpServer httpServer = HttpServer.create();
 		httpServer.createContext("/", new StaticHandler(args[0], false, false));
-		httpServer.bind(new InetSocketAddress("localhost", 8000), 100);
+		int port = args.length > 1 ? Integer.parseInt(args[1]) : 8000;
+		httpServer.bind(new InetSocketAddress("localhost", port), 100);
 		httpServer.start();
 	}
 }
