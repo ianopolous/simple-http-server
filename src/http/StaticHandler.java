@@ -43,9 +43,15 @@ public class StaticHandler implements HttpHandler
             if (path.length() == 0)
                 path = "index.html";
 
-            boolean fromFile = new File(pathToRoot + path).exists();
-            InputStream in = fromFile ? new FileInputStream(pathToRoot + path)
-                    : ClassLoader.getSystemClassLoader().getResourceAsStream(pathToRoot + path);
+	    boolean fromFile = new File(pathToRoot + path).exists();
+	    InputStream in = fromFile ? new FileInputStream(pathToRoot + path)
+		: ClassLoader.getSystemClassLoader().getResourceAsStream(pathToRoot + path);
+	    if (in == null) {
+		String toAsset = pathToRoot + path + ".html";
+		fromFile = new File(toAsset).exists();
+		in = fromFile ? new FileInputStream(toAsset)
+                    : ClassLoader.getSystemClassLoader().getResourceAsStream(toAsset);
+	    }
             Asset res = caching ? data.get(path) : new Asset(readResource(in, gzip));
 
             if (gzip)
@@ -71,6 +77,9 @@ public class StaticHandler implements HttpHandler
             httpExchange.getResponseBody().close();
         } catch (NullPointerException t) {
             System.err.println("Error retrieving: " + path);
+	    t.printStackTrace();
+	    httpExchange.sendResponseHeaders(404, 0);
+            httpExchange.getResponseBody().close();
         } catch (Throwable t) {
             System.err.println("Error retrieving: " + path);
             t.printStackTrace();
